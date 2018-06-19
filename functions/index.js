@@ -108,3 +108,28 @@ exports.incrementViews = functions.https.onRequest((request, response) => {
     }
   });
 });
+
+// Odie of the Hour
+exports.hourlyOdie = functions.https.onRequest((request, response) => {
+  cors(request, response, () => {
+
+    admin.database.enableLogging(true);
+
+    const odies = admin.database().ref('odies');
+
+    return odies.once('value').then(snapshot => {
+      const numOdies = snapshot.numChildren();
+      const randomIndex = Math.floor(Math.random() * numOdies);
+
+      return odies.orderByChild('hourly').equalTo(true).once('value').then(snapshot => {
+        var exists = (snapshot.val() !== null);
+
+        if (exists) snapshot.update({'hourly': false});
+
+        console.log('randomIndex: ' + randomIndex);
+        return;
+        //return odies.limitToFirst(randomIndex).update({'hourly': true});
+      });
+    });
+  });
+});
