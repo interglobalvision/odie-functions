@@ -61,11 +61,12 @@ exports.incrementViews = functions.https.onRequest((request, response) => {
   cors(request, response, () => {
 
     // Get request params
-    const odieId = request.query.odie || undefined;
+    const parentId = request.query.parent || undefined;
+    const childId = request.query.child || undefined;
     const views = request.query.views || undefined;
 
     // Check that loteId was passed
-    if (odieId === undefined) {
+    if (parentId === undefined) {
 
       // Respond: loteId us undefined
       throw new Error('odieId/undefined');
@@ -74,9 +75,11 @@ exports.incrementViews = functions.https.onRequest((request, response) => {
 
       admin.database.enableLogging(true);
 
+      const odieRef = childId === undefined ? `odies/${parentId}/views` || `odies/${parentId}/paths/${childId}/views`;
+
       // Verify tokeId for security
       return admin.database()
-      .ref(`odies/${odieId}/views`)
+      .ref(odieRef)
       .transaction(function(currentViews) {
         let views = currentViews || 0;
         return parseInt(views) + 1;
@@ -106,5 +109,30 @@ exports.incrementViews = functions.https.onRequest((request, response) => {
 
       });
     }
+  });
+});
+
+// Odie of the Hour
+exports.hourlyOdie = functions.https.onRequest((request, response) => {
+  cors(request, response, () => {
+
+    admin.database.enableLogging(true);
+
+    const odies = admin.database().ref('odies');
+
+    odies.once('value').then(snapshot => {
+      const numOdies = snapshot.numChildren();
+      const randomIndex = Math.floor(Math.random() * numOdies);
+
+      return odies.orderByChild('hourly').equalTo(true).once('value').then(snapshot => {
+        var exists = (snapshot.val() !== null);
+
+        if (exists) admin.database().update({'hourly': false});
+
+        console.log('randomIndex: ' + randomIndex);
+        return;
+        //return odies.limitToFirst(randomIndex).update({'hourly': true});
+      });
+    });
   });
 });
