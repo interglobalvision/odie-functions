@@ -75,7 +75,7 @@ exports.incrementViews = functions.https.onRequest((request, response) => {
 
       admin.database.enableLogging(true);
 
-      const odieRef = childId === undefined ? `odies/${parentId}/views` || `odies/${parentId}/paths/${childId}/views`;
+      const odieRef = childId === undefined ? `odies/${parentId}/views` : `odies/${parentId}/paths/${childId}/views`;
 
       // Verify tokeId for security
       return admin.database()
@@ -113,6 +113,7 @@ exports.incrementViews = functions.https.onRequest((request, response) => {
 });
 
 // Odie of the Hour
+/*
 exports.hourlyOdie = functions.https.onRequest((request, response) => {
   cors(request, response, () => {
 
@@ -136,3 +137,4 @@ exports.hourlyOdie = functions.https.onRequest((request, response) => {
     });
   });
 });
+*/
